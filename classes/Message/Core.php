@@ -51,7 +51,7 @@ class Message_Core
 	 */
 	public static function clear()
 	{
-		Session::instance()->delete('flash_messages');
+		Session::instance()->delete('flash_message');
 	}
 
 	/**
@@ -62,7 +62,21 @@ class Message_Core
 	 */
 	public static function display($view = null)
 	{
-		echo self::render($view);
+		$html = "";
+		$msg = self::get();
+
+		if($msg)
+		{
+			if ($view === null)
+			{
+				$view = self::$default;
+			}
+
+			self::clear();
+			$html = View::factory($view)->set('message', $msg)->render();
+		}
+
+		return $html;
 	}
 
 	/**
@@ -73,21 +87,7 @@ class Message_Core
 	 */
 	public static function render($view = null)
 	{
-		$html = "";
-		$msgs = self::get();
-
-		if($msgs)
-		{
-			if ($view === null)
-			{
-				$view = self::$default;
-			}
-
-			self::clear();
-			$html = View::factory($view)->set('messages', $msgs)->render();
-		}
-
-		return $html;
+		return self::display($view);
 	}
 
 	/**
@@ -97,7 +97,7 @@ class Message_Core
 	 */
 	public static function get()
 	{
-		return Session::instance()->get('flash_messages', FALSE);
+		return Session::instance()->get('flash_message', FALSE);
 	}
 
 	/**
@@ -106,11 +106,9 @@ class Message_Core
 	 * @param   string   Type of message
 	 * @param   mixed    Array/String for the message
 	 */
-	public static function add($type, $message)
+	public static function set($type, $message)
 	{
-		$msgs = Session::instance()->get('flash_messages', array());
-		$msgs[$type][] = new Message($type, $message);
-		Session::instance()->set('flash_messages', $msgs);
+		Session::instance()->set('flash_message', new Message($type, $message));
 	}
 
 	/**
@@ -120,7 +118,7 @@ class Message_Core
 	 */
 	public static function error($message)
 	{
-		self::add(Message::ERROR, $message);
+		self::set(Message::ERROR, $message);
 	}
 
 	/**
@@ -130,7 +128,7 @@ class Message_Core
 	 */
 	public static function notice($message)
 	{
-		self::add(Message::NOTICE, $message);
+		self::set(Message::NOTICE, $message);
 	}
 
 	/**
@@ -140,7 +138,7 @@ class Message_Core
 	 */
 	public static function success($message)
 	{
-		self::add(Message::SUCCESS, $message);
+		self::set(Message::SUCCESS, $message);
 	}
 
 	/**
@@ -150,7 +148,7 @@ class Message_Core
 	 */
 	public static function warn($message)
 	{
-		self::add(Message::WARN, $message);
+		self::set(Message::WARN, $message);
 	}
 
 }
